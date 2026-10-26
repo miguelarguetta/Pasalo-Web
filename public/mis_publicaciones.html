@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Mis Publicaciones</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i><span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleMenuUsuario()"><i class="fa-solid fa-user-circle" style="font-size: 1.4rem;"></i></button>
+        <div class="user-dropdown" id="dropdownUsuario">
+          <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+          <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+          <a href="admin.html" id="btnAdminNav" style="display:none; color: var(--danger); font-weight: bold;"><i class="fa-solid fa-shield-halved"></i> Panel Admin</a>
+          <hr style="border-color: var(--border); margin: 0.5rem 0;">
+          <button onclick="toggleTema()"><i id="iconoTema" class="fa-solid fa-sun"></i> Cambiar Tema</button>
+          <button onclick="cerrarSesion()" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="margin-bottom:1rem;"><i class="fa-solid fa-box"></i> Mis publicaciones</h2>
+    <div id="contenedor" class="grid-publications"><p style="color: var(--text-muted);">Cargando...</p></div>
+  </main>
+
+  <div class="modal" id="modalChat">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header"><h3 id="chatTitle">Mensajes</h3><button onclick="cerrarModal('modalChat')">&times;</button></div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="listaConversaciones"></div>
+        <div style="display:flex; flex-direction:column;">
+          <div class="chat-box" id="chatMessages"></div>
+          <form onsubmit="enviarMensaje(event)" style="display:flex; gap:0.5rem;">
+            <input type="text" id="mensajeTexto" class="form-control" placeholder="Escribe un mensaje..." required>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalEditar">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Editar publicación</h3><button onclick="cerrarModal('modalEditar')">&times;</button></div>
+      <form id="formEditar" onsubmit="guardarEdicion(event)" style="display:flex; flex-direction:column; gap:1rem;">
+        <input type="hidden" id="editId">
+        <div><label style="font-size:0.85rem; color:var(--text-muted);">Título</label><input type="text" id="editTitulo" class="form-control" required></div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted);">Descripción</label><textarea id="editDescripcion" class="form-control" rows="3"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Precio</label><input type="number" step="0.01" id="editPrecio" class="form-control"></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Tipo</label><select id="editTipo" class="form-control"><option value="Venta">Venta</option><option value="Renta">Renta</option><option value="Intercambio">Intercambio</option></select></div>
+        </div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted);">Estado</label><select id="editEstado" class="form-control"><option value="Disponible">Disponible</option><option value="Pausada">Pausada</option><option value="Vendida">Vendida</option></select></div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted);">Cambiar Foto (opcional)</label><input type="file" id="editImagen" accept="image/*" class="form-control" onchange="previsualizarEditImagen(event)"><img id="editImgPreview" style="display:none; width:100%; max-height:150px; object-fit:contain; margin-top:10px; border-radius:8px;"></div>
+        <button type="submit" class="btn-primary" style="justify-content:center;"><i class="fa-solid fa-save"></i> Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasalo.js"></script>
+  <script>
+    let nuevaImagenBase64 = "";
+
+    async function cargarMisPublicaciones() {
+      const contenedor = document.getElementById('contenedor');
+      try {
+        const res = await fetchAuth(`${API_URL}/mis-publicaciones`);
+        if (!res.ok) return contenedor.innerHTML = `<p style="color:red;">Inicia sesión. <a href="login.html">Entrar</a></p>`;
+        const pubs = await res.json();
+        if (pubs.length === 0) return contenedor.innerHTML = '<p>No tienes publicaciones.</p>';
+        contenedor.innerHTML = '';
+        pubs.forEach(p => {
+          const imgHTML = p.imagen ? `<img src="${p.imagen}" style="width:100%; height:150px; object-fit:cover; border-bottom: 1px solid var(--border);">` : `<div style="width:100%; height:150px; background:#334155; display:flex; align-items:center; justify-content:center; border-bottom: 1px solid var(--border);"><i class="fa-solid fa-image" style="font-size:2rem; color:#64748b;"></i></div>`;
+          const btnVender = p.estado === 'Disponible' ? `<button class="btn-primary" style="flex:1; min-width: 100px; background:#f59e0b;" onclick="marcarVendido(${p.id})"><i class="fa-solid fa-check-circle"></i> Vendido</button>` : '';
+          contenedor.innerHTML += `
+            <div class="card">
+              ${imgHTML}
+              <div class="card-body">
+                <span class="badge badge-${p.tipo}">${p.tipo}</span>
+                <span style="font-size:0.7rem; color:var(--text-muted); align-self:flex-end; background:${p.estado === 'Vendida' ? '#ef4444' : p.estado === 'Pausada' ? '#f59e0b' : '#10b981'}; padding: 2px 6px; border-radius: 4px; color:white;">${p.estado}</span>
+                <a href="detalle.html?id=${p.id}" class="card-title">${p.titulo}</a>
+                <div class="card-price">$${Number(p.precio).toFixed(2)}</div>
+              </div>
+              <div class="card-actions" style="flex-wrap:wrap; gap:0.5rem;">
+                <button class="btn-primary" onclick='abrirEditar(${JSON.stringify(p).replace(/'/g, "&apos;")})' style="flex:1; min-width: 100px; background:#10b981;"><i class="fa-solid fa-pen"></i> Editar</button>
+                ${btnVender}
+                <button class="btn-primary" style="flex:1; min-width: 100px; background:#ef4444;" onclick="eliminar(${p.id})"><i class="fa-solid fa-trash"></i> Eliminar</button>
+              </div>
+            </div>`;
+        });
+      } catch (error) { contenedor.innerHTML = '<p style="color: red;">Error de conexión.</p>'; }
+    }
+
+    async function marcarVendido(id) {
+      if (!confirm('¿Marcar este artículo como VENDIDO?')) return;
+      const res = await fetchAuth(`${API_URL}/publicaciones/${id}/vender`, { method: 'PUT' });
+      if (res.ok) { alert('¡Artículo marcado como Vendido!'); cargarMisPublicaciones(); }
+    }
+
+    function previsualizarEditImagen(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) { nuevaImagenBase64 = e.target.result; document.getElementById('editImgPreview').src = nuevaImagenBase64; document.getElementById('editImgPreview').style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    function abrirEditar(p) {
+      document.getElementById('editId').value = p.id; document.getElementById('editTitulo').value = p.titulo; document.getElementById('editDescripcion').value = p.descripcion || ''; document.getElementById('editPrecio').value = p.precio; document.getElementById('editTipo').value = p.tipo; document.getElementById('editEstado').value = p.estado;
+      nuevaImagenBase64 = ""; document.getElementById('editImagen').value = '';
+      const img = document.getElementById('editImgPreview');
+      if(p.imagen) { img.src = p.imagen; img.style.display = 'block'; } else { img.style.display = 'none'; }
+      abrirModal('modalEditar');
+    }
+
+    async function guardarEdicion(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const payload = { titulo: document.getElementById('editTitulo').value.trim(), descripcion: document.getElementById('editDescripcion').value.trim(), precio: parseFloat(document.getElementById('editPrecio').value) || 0, tipo: document.getElementById('editTipo').value, estado: document.getElementById('editEstado').value, imagen: nuevaImagenBase64 };
+      const res = await fetchAuth(`${API_URL}/publicaciones/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (res.ok) { cerrarModal('modalEditar'); cargarMisPublicaciones(); } else { alert('Error al guardar.'); }
+    }
+
+    async function eliminar(id) {
+      if (!confirm('¿Eliminar esta publicación?')) return;
+      const res = await fetchAuth(`${API_URL}/publicaciones/${id}`, { method: 'DELETE' });
+      if (res.ok) cargarMisPublicaciones();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await getUsuarioActual();
+      if (localStorage.getItem('es_admin') === 'true') document.getElementById('btnAdminNav').style.display = 'flex';
+      cargarMisPublicaciones();
+    });
+  </script>
+</body>
+</html>

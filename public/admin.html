@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Panel de Administración</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span style="color:var(--danger);">Admin</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Volver al sitio</a>
+      <button onclick="cerrarSesion()"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="margin-bottom: 2rem; color: var(--danger);"><i class="fa-solid fa-shield-halved"></i> Centro de Control</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom: 3rem;">
+      <div class="card" style="padding: 1.5rem; text-align: center;"><i class="fa-solid fa-users" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i><h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Usuarios</h3><p id="statUsuarios" style="font-size: 2rem; font-weight: bold;">-</p></div>
+      <div class="card" style="padding: 1.5rem; text-align: center;"><i class="fa-solid fa-box" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i><h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Publicaciones</h3><p id="statPubs" style="font-size: 2rem; font-weight: bold;">-</p></div>
+      <div class="card" style="padding: 1.5rem; text-align: center;"><i class="fa-solid fa-envelope" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 1rem;"></i><h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Mensajes</h3><p id="statMsgs" style="font-size: 2rem; font-weight: bold;">-</p></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+      <div class="card" style="padding: 2rem;"><h3 style="margin-bottom: 1.5rem; text-align: center;">Publicaciones por Categoría</h3><div style="position: relative; height: 300px; width: 100%;"><canvas id="graficoCategorias"></canvas></div></div>
+      <div class="card" style="padding: 2rem;"><h3 style="margin-bottom: 1.5rem; text-align: center;">Actividad (Últimos 7 días)</h3><div style="position: relative; height: 300px; width: 100%;"><canvas id="graficoActividad"></canvas></div></div>
+    </div>
+    <h3 style="margin-bottom: 1rem;">Moderación de Publicaciones</h3>
+    <div id="adminContainer" class="grid-publications"><p>Cargando...</p></div>
+  </main>
+
+  <script src="pasalo.js"></script>
+  <script>
+    async function cargarAdmin() {
+      try {
+        const resStats = await fetchAuth(`${API_URL}/admin/estadisticas`);
+        if (resStats.ok) { const stats = await resStats.json(); document.getElementById('statUsuarios').textContent = stats.usuarios; document.getElementById('statPubs').textContent = stats.publicaciones; document.getElementById('statMsgs').textContent = stats.mensajes; }
+      } catch (e) { console.error(e); }
+      try {
+        const resGraf = await fetchAuth(`${API_URL}/admin/graficos`);
+        if (resGraf.ok) {
+          const data = await resGraf.json();
+          new Chart(document.getElementById('graficoCategorias').getContext('2d'), { type: 'doughnut', data: { labels: data.categorias.map(c => c.nombre), datasets: [{ data: data.categorias.map(c => c.cantidad), backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } } });
+          new Chart(document.getElementById('graficoActividad').getContext('2d'), { type: 'bar', data: { labels: data.actividad.map(a => a.dia), datasets: [{ label: 'Nuevas publicaciones', data: data.actividad.map(a => a.cantidad), backgroundColor: '#6366f1', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { display: false } } } } });
+        }
+      } catch (e) { console.error(e); }
+      try {
+        const res = await fetch(`${API_URL}/publicaciones`);
+        const pubs = await res.json();
+        const container = document.getElementById('adminContainer');
+        container.innerHTML = '';
+        pubs.forEach(p => {
+          container.innerHTML += `<div class="card"><div class="card-body"><span class="badge badge-${p.tipo}">${p.tipo}</span><a href="detalle.html?id=${p.id}" class="card-title">${p.titulo}</a><div class="card-price">$${Number(p.precio).toFixed(2)}</div><p style="font-size:0.8rem; color:var(--text-muted);">Vendedor: ${p.vendedor_nombre}</p></div><div class="card-actions"><button class="btn-primary" style="width: 100%; background:#ef4444;" onclick="adminEliminar(${p.id})"><i class="fa-solid fa-trash"></i> Eliminar</button></div></div>`;
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    async function adminEliminar(id) {
+      if (!confirm('¿Eliminar permanentemente?')) return;
+      const res = await fetchAuth(`${API_URL}/publicaciones/${id}`, { method: 'DELETE' });
+      if (res.ok) { alert('Eliminada.'); cargarAdmin(); }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await requireAuth();
+      if (!user) return;
+      if (user.rol !== 'Admin') {
+        window.location.replace('explorar.html');
+        return;
+      }
+      cargarAdmin();
+    });
+  </script>
+</body>
+</html>

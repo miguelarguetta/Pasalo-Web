@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Perfil</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .avatar-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 1rem; }
+    .avatar-placeholder { width: 120px; height: 120px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #64748b; border: 3px solid var(--border); margin-bottom: 1rem; }
+    .resena-card { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 3px solid #f59e0b; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i><span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleMenuUsuario()"><i class="fa-solid fa-user-circle" style="font-size: 1.4rem;"></i></button>
+        <div class="user-dropdown" id="dropdownUsuario">
+          <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+          <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+          <a href="admin.html" id="btnAdminNav" style="display:none; color: var(--danger); font-weight: bold;"><i class="fa-solid fa-shield-halved"></i> Panel Admin</a>
+          <hr style="border-color: var(--border); margin: 0.5rem 0;">
+          <button onclick="toggleTema()"><i id="iconoTema" class="fa-solid fa-sun"></i> Cambiar Tema</button>
+          <button onclick="cerrarSesion()" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main style="max-width: 800px;">
+    <!-- SECCIÓN DE PERFIL PÚBLICO -->
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+      <div id="perfilHeader" style="display: flex; align-items: center; gap: 1.5rem;">
+        <p style="color:var(--text-muted);">Cargando perfil...</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE SUS PUBLICACIONES -->
+    <div style="margin-bottom: 2rem;">
+      <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-box"></i> Artículos publicados</h3>
+      <div id="susPublicaciones" class="grid-publications">
+        <p style="color:var(--text-muted);">Cargando...</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE RESEÑAS -->
+    <div class="card" style="padding: 2rem;">
+      <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> Reseñas recibidas</h3>
+      <div id="susResenas">
+        <p style="color:var(--text-muted);">Cargando...</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN PRIVADA: SOLO SI ES TU PROPIO PERFIL -->
+    <div id="seccionPrivada" style="display: none; margin-top: 3rem;">
+      <hr style="border-color: var(--border); margin-bottom: 2rem;">
+      <h2 style="margin-bottom: 2rem;">Configuración de Mi Cuenta</h2>
+      
+      <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;">Editar Datos Personales</h3>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem;">
+          <div id="avatarContainer"></div>
+          <label for="avatarInput" class="btn-primary" style="cursor: pointer; font-size: 0.9rem; padding: 0.5rem 1rem;"><i class="fa-solid fa-camera"></i> Cambiar Foto</label>
+          <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="previsualizarAvatar(event)">
+        </div>
+        <div id="perfilError" style="display:none; background: rgba(239,68,68,0.15); color:#f87171; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem;"></div>
+        <div id="perfilExito" style="display:none; background: rgba(16,185,129,0.15); color:#10b981; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem;"></div>
+        <form id="formPerfil" onsubmit="guardarPerfil(event)" style="display:flex; flex-direction:column; gap:1rem;">
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Nombre completo</label><input type="text" id="perfilNombre" class="form-control" required></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Correo (no editable)</label><input type="email" id="perfilEmail" class="form-control" disabled style="opacity: 0.6;"></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Carrera</label><input type="text" id="perfilCarrera" class="form-control"></div>
+          <button type="submit" class="btn-primary" style="justify-content:center;">Guardar Cambios</button>
+        </form>
+      </div>
+
+      <div class="card" style="padding: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;">Cambiar Contraseña</h3>
+        <div id="passError" style="display:none; background: rgba(239,68,68,0.15); color:#f87171; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem;"></div>
+        <div id="passExito" style="display:none; background: rgba(16,185,129,0.15); color:#10b981; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem;"></div>
+        <form onsubmit="cambiarPassword(event)" style="display:flex; flex-direction:column; gap:1rem;">
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Contraseña Actual</label><input type="password" id="passActual" class="form-control" required></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted);">Nueva Contraseña (mín 8)</label><input type="password" id="passNueva" class="form-control" required minlength="8"></div>
+          <button type="submit" class="btn-primary" style="justify-content:center; background:#f59e0b;">Actualizar Contraseña</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasalo.js"></script>
+  <script>
+    let nuevoAvatarBase64 = "";
+    let esMiPerfil = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const idBuscado = params.get('id'); // ID del vendedor (si viene de un artículo)
+      
+      const user = await getUsuarioActual();
+      if (!user) return (window.location.href = 'login.html');
+
+      // Si no hay ID en la URL, es porque entré desde "Mi Perfil". Si hay ID, verifico si es el mío.
+      const idAMostrar = idBuscado ? idBuscado : user.id;
+      esMiPerfil = (Number(idAMostrar) === Number(user.id));
+
+      cargarPerfil(idAMostrar, esMiPerfil);
+    });
+
+    async function cargarPerfil(idUsuario, esMio) {
+      const header = document.getElementById('perfilHeader');
+      const contPubs = document.getElementById('susPublicaciones');
+      const contResenas = document.getElementById('susResenas');
+
+      try {
+        const resUser = await fetch(`${API_URL}/usuarios/${idUsuario}`);
+        if (!resUser.ok) throw new Error('Usuario no encontrado');
+        const usuario = await resUser.json();
+
+        // 1. Mostrar cabecera del perfil
+        const avatarHTML = usuario.avatar 
+          ? `<img src="${usuario.avatar}" class="avatar-preview">` 
+          : `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`;
+
+        header.innerHTML = `
+          ${avatarHTML}
+          <div>
+            <h2 style="margin-bottom: 0.3rem;">${escapeHtml(usuario.nombre)}</h2>
+            <p style="color:var(--text-muted); margin-bottom: 0.5rem;"><i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(usuario.carrera || 'Estudiante')}</p>
+            <p style="font-size: 1.1rem;"><strong>Reputación:</strong> ⭐ ${Number(usuario.reputacion).toFixed(1)} / 5.0</p>
+          </div>
+        `;
+
+        // 2. Cargar publicaciones
+        const resPubs = await fetch(`${API_URL}/publicaciones`);
+        const todasPubs = await resPubs.json();
+        const misPubs = todasPubs.filter(p => p.usuario_id == idUsuario);
+
+        if (misPubs.length === 0) {
+          contPubs.innerHTML = '<p style="color:var(--text-muted); grid-column:1/-1;">No tiene artículos disponibles.</p>';
+        } else {
+          contPubs.innerHTML = '';
+          misPubs.forEach(p => {
+            const imgHTML = p.imagen 
+              ? `<img src="${p.imagen}" style="width:100%; height:150px; object-fit:cover; border-bottom: 1px solid var(--border);">`
+              : `<div style="width:100%; height:150px; background:#334155; display:flex; align-items:center; justify-content:center; border-bottom: 1px solid var(--border);"><i class="fa-solid fa-image" style="font-size:2rem; color:#64748b;"></i></div>`;
+            contPubs.innerHTML += `
+              <div class="card">
+                ${imgHTML}
+                <div class="card-body">
+                  <span class="badge badge-${p.tipo}">${p.tipo}</span>
+                  <a href="detalle.html?id=${p.id}" class="card-title">${escapeHtml(p.titulo)}</a>
+                  <div class="card-price">$${Number(p.precio).toFixed(2)}</div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        // 3. Cargar reseñas
+        const resResenas = await fetch(`${API_URL}/resenas/${idUsuario}`);
+        const resenas = await resResenas.json();
+
+        if (resenas.length === 0) {
+          contResenas.innerHTML = '<p style="color:var(--text-muted);">Aún no tiene reseñas.</p>';
+        } else {
+          contResenas.innerHTML = '';
+          resenas.forEach(r => {
+            let estrellasHTML = '';
+            for (let i = 1; i <= 5; i++) {
+              estrellasHTML += i <= r.calificacion ? '<i class="fa-solid fa-star" style="color:#f59e0b;"></i>' : '<i class="fa-regular fa-star" style="color:#64748b;"></i>';
+            }
+            contResenas.innerHTML += `
+              <div class="resena-card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                  <strong>${escapeHtml(r.comprador_nombre)}</strong>
+                  <span>${estrellasHTML}</span>
+                </div>
+                <p style="font-size:0.9rem; color:#cbd5e1;">${escapeHtml(r.comentario || 'Sin comentario.')}</p>
+              </div>
+            `;
+          });
+        }
+
+        // 4. Si es mi propio perfil, muestro los formularios de edición
+        if (esMio) {
+          document.getElementById('seccionPrivada').style.display = 'block';
+          
+          document.getElementById('perfilNombre').value = usuario.nombre;
+          document.getElementById('perfilEmail').value = user.email; // El email solo lo ve el dueño
+          document.getElementById('perfilCarrera').value = usuario.carrera || '';
+          
+          const avatarContainer = document.getElementById('avatarContainer');
+          if (usuario.avatar) {
+            avatarContainer.innerHTML = `<img src="${usuario.avatar}" class="avatar-preview">`;
+          } else {
+            avatarContainer.innerHTML = `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`;
+          }
+
+          if (localStorage.getItem('es_admin') === 'true') {
+            document.getElementById('btnAdminNav').style.display = 'flex';
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        header.innerHTML = '<p style="color:#f87171;">Error al cargar el perfil.</p>';
+      }
+    }
+
+    function previsualizarAvatar(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        nuevoAvatarBase64 = e.target.result;
+        document.getElementById('avatarContainer').innerHTML = `<img src="${nuevoAvatarBase64}" class="avatar-preview">`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function guardarPerfil(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('perfilError');
+      const exitoBox = document.getElementById('perfilExito');
+      errorBox.style.display = 'none'; exitoBox.style.display = 'none';
+
+      const payload = {
+        nombre: document.getElementById('perfilNombre').value.trim(),
+        carrera: document.getElementById('perfilCarrera').value.trim(),
+        avatar: nuevoAvatarBase64 || null
+      };
+
+      const res = await fetchAuth(`${API_URL}/perfil`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        exitoBox.textContent = "Perfil actualizado correctamente.";
+        exitoBox.style.display = 'block';
+        nuevoAvatarBase64 = "";
+      } else {
+        errorBox.textContent = "Error al actualizar.";
+        errorBox.style.display = 'block';
+      }
+    }
+
+    async function cambiarPassword(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('passError');
+      const exitoBox = document.getElementById('passExito');
+      errorBox.style.display = 'none'; exitoBox.style.display = 'none';
+
+      const payload = {
+        password_actual: document.getElementById('passActual').value,
+        password_nueva: document.getElementById('passNueva').value
+      };
+
+      const res = await fetchAuth(`${API_URL}/perfil/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        exitoBox.textContent = "Contraseña actualizada correctamente.";
+        exitoBox.style.display = 'block';
+        document.getElementById('passActual').value = '';
+        document.getElementById('passNueva').value = '';
+      } else {
+        const data = await res.json();
+        errorBox.textContent = data.error || "Error al cambiar la contraseña.";
+        errorBox.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

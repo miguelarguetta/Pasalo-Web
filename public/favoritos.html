@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Mis Favoritos</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i><span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleMenuUsuario()"><i class="fa-solid fa-user-circle" style="font-size: 1.4rem;"></i></button>
+        <div class="user-dropdown" id="dropdownUsuario">
+          <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+          <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+          <a href="admin.html" id="btnAdminNav" style="display:none; color: var(--danger); font-weight: bold;"><i class="fa-solid fa-shield-halved"></i> Panel Admin</a>
+          <hr style="border-color: var(--border); margin: 0.5rem 0;">
+          <button onclick="toggleTema()"><i id="iconoTema" class="fa-solid fa-sun"></i> Cambiar Tema</button>
+          <button onclick="cerrarSesion()" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="margin-bottom:1rem;"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Mis Favoritos</h2>
+    <div id="contenedorFavoritos" class="grid-publications"><p style="color: var(--text-muted);">Cargando...</p></div>
+  </main>
+
+  <div class="modal" id="modalChat">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header"><h3 id="chatTitle">Mensajes</h3><button onclick="cerrarModal('modalChat')">&times;</button></div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="listaConversaciones"></div>
+        <div style="display:flex; flex-direction:column;">
+          <div class="chat-box" id="chatMessages"></div>
+          <form onsubmit="enviarMensaje(event)" style="display:flex; gap:0.5rem;">
+            <input type="text" id="mensajeTexto" class="form-control" placeholder="Escribe un mensaje..." required>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasalo.js"></script>
+  <script>
+    async function cargarFavoritos() {
+      const contenedor = document.getElementById('contenedorFavoritos');
+      const user = await requireAuth();
+      if (!user) return;
+      try {
+        const res = await fetchAuth(`${API_URL}/favoritos`);
+        const favs = await res.json();
+        if (favs.length === 0) { contenedor.innerHTML = '<p style="color:var(--text-muted); grid-column:1/-1;">No tienes artículos favoritos aún.</p>'; return; }
+        contenedor.innerHTML = '';
+        favs.forEach(pub => {
+          const imgHTML = pub.imagen ? `<img src="${pub.imagen}" style="width:100%; height:180px; object-fit:cover; border-bottom: 1px solid var(--border);">` : `<div style="width:100%; height:180px; background:#334155; display:flex; align-items:center; justify-content:center; border-bottom: 1px solid var(--border);"><i class="fa-solid fa-image" style="font-size:3rem; color:#64748b;"></i></div>`;
+          contenedor.innerHTML += `
+            <div class="card">
+              ${imgHTML}
+              <div class="card-body">
+                <span class="badge badge-${pub.tipo}">${pub.tipo}</span>
+                <a href="detalle.html?id=${pub.id}" class="card-title">${pub.titulo}</a>
+                <div class="card-price">$${Number(pub.precio).toFixed(2)}</div>
+                <div class="card-meta"><i class="fa-solid fa-user"></i> ${pub.vendedor_nombre}</div>
+              </div>
+              <div class="card-actions">
+                <button class="btn-primary" style="width:100%; background:#ef4444;" onclick="quitarFavorito(${pub.id})"><i class="fa-solid fa-heart-broken"></i> Quitar de Favoritos</button>
+              </div>
+            </div>`;
+        });
+      } catch (err) { contenedor.innerHTML = '<p style="color:#f87171; grid-column:1/-1;">Error al cargar favoritos.</p>'; }
+    }
+
+    async function quitarFavorito(id) {
+      const res = await fetchAuth(`${API_URL}/favoritos/${id}`, { method: 'POST' });
+      if (res.ok) cargarFavoritos();
+    }
+
+    cargarFavoritos();
+  </script>
+</body>
+</html>

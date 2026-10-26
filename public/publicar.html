@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Publicar Artículo</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>.image-preview { width: 100%; max-height: 200px; object-fit: contain; display: none; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border); }</style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i><span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleMenuUsuario()"><i class="fa-solid fa-user-circle" style="font-size: 1.4rem;"></i></button>
+        <div class="user-dropdown" id="dropdownUsuario">
+          <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+          <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+          <a href="admin.html" id="btnAdminNav" style="display:none; color: var(--danger); font-weight: bold;"><i class="fa-solid fa-shield-halved"></i> Panel Admin</a>
+          <hr style="border-color: var(--border); margin: 0.5rem 0;">
+          <button onclick="toggleTema()"><i id="iconoTema" class="fa-solid fa-sun"></i> Cambiar Tema</button>
+          <button onclick="cerrarSesion()" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main style="max-width: 640px;">
+    <div class="card" style="padding: 2rem;">
+      <h2 style="margin-bottom: 0.3rem;">Publicar nuevo material</h2>
+      <p style="color: var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">Completa los datos para que otros estudiantes encuentren tu artículo.</p>
+      <div id="pubError" style="display:none; background: rgba(239,68,68,0.15); color:#f87171; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem;"></div>
+      <form id="formPublicar" onsubmit="guardarNuevaPublicacion(event)" style="display:flex; flex-direction:column; gap:1rem;" novalidate>
+        <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Título *</label><input type="text" id="pubTitulo" class="form-control" placeholder="Ej. Cálculo de Stewart 8va ed." required maxlength="200"></div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Descripción</label><textarea id="pubDescripcion" class="form-control" rows="3" placeholder="Estado, detalles, edición..." maxlength="1000"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Precio ($)</label><input type="number" step="0.01" min="0" id="pubPrecio" class="form-control" placeholder="0.00"></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Tipo *</label><select id="pubTipo" class="form-control" required><option value="Venta">Venta</option><option value="Renta">Renta</option><option value="Intercambio">Intercambio</option></select></div>
+        </div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Categoría *</label><select id="pubCategoria" class="form-control" required></select></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Materia</label><input type="text" id="pubMateria" class="form-control" placeholder="Ej. Matemática I" maxlength="100"></div>
+          <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Carrera</label><input type="text" id="pubCarrera" class="form-control" placeholder="Ej. Ingeniería" maxlength="100"></div>
+        </div>
+        <div><label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Foto del artículo</label><input type="file" id="pubImagen" accept="image/*" class="form-control" onchange="previsualizarImagen(event)"><img id="imgPreview" class="image-preview" alt="Vista previa"></div>
+        <button type="submit" class="btn-primary" style="justify-content:center;" id="btnPublicar"><i class="fa-solid fa-upload"></i> Guardar y publicar</button>
+      </form>
+    </div>
+  </main>
+
+  <div class="modal" id="modalChat">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header"><h3 id="chatTitle">Mensajes</h3><button onclick="cerrarModal('modalChat')">&times;</button></div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="listaConversaciones"></div>
+        <div style="display:flex; flex-direction:column;">
+          <div class="chat-box" id="chatMessages"></div>
+          <form onsubmit="enviarMensaje(event)" style="display:flex; gap:0.5rem;">
+            <input type="text" id="mensajeTexto" class="form-control" placeholder="Escribe tu mensaje..." required>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasalo.js"></script>
+  <script>
+    let imagenBase64 = "";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await requireAuth();
+      if (!user) return;
+      if (localStorage.getItem('es_admin') === 'true') document.getElementById('btnAdminNav').style.display = 'flex';
+      cargarCategoriasSelect(['pubCategoria']);
+    });
+
+    function previsualizarImagen(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) { imagenBase64 = e.target.result; document.getElementById('imgPreview').src = imagenBase64; document.getElementById('imgPreview').style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    async function guardarNuevaPublicacion(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('pubError');
+      const btn = document.getElementById('btnPublicar');
+      errorBox.style.display = 'none';
+      const payload = { titulo: document.getElementById('pubTitulo').value.trim(), descripcion: document.getElementById('pubDescripcion').value.trim(), precio: parseFloat(document.getElementById('pubPrecio').value) || 0, tipo: document.getElementById('pubTipo').value, categoria_id: document.getElementById('pubCategoria').value, materia: document.getElementById('pubMateria').value.trim(), carrera: document.getElementById('pubCarrera').value.trim(), imagen: imagenBase64 };
+      if (payload.titulo.length < 3) return mostrarError('El título debe tener al menos 3 caracteres.');
+      if (!payload.categoria_id) return mostrarError('Selecciona una categoría.');
+      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publicando...';
+      try {
+        const res = await fetchAuth(`${API_URL}/publicaciones`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (res.ok) { window.location.href = `detalle.html?id=${data.id}`; } else { mostrarError(data.error || 'No se pudo publicar.'); }
+      } catch (err) { mostrarError('Error de conexión.'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-upload"></i> Guardar y publicar'; }
+    }
+
+    function mostrarError(msg) {
+      const box = document.getElementById('pubError'); box.textContent = msg; box.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

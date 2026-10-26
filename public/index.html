@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Mercado Comunitario Universitario</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</a>
+      <a href="registro.html" class="btn-primary"><i class="fa-solid fa-user-plus"></i> Registrarse</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section style="text-align:center; padding: 4rem 1rem;">
+      <h1 style="font-size: 2.8rem; margin-bottom: 1rem;">
+        Compra y vende <span style="color:var(--accent);">materiales</span><br>entre estudiantes
+      </h1>
+      <p style="color: var(--text-muted); font-size:1.15rem; max-width:600px; margin: 0 auto 2rem;">
+        Ahorra hasta un 80% en libros, calculadoras y guías. Compra, renta, intercambia o dona dentro de tu campus.
+      </p>
+      <a href="registro.html" class="btn-primary" style="padding: 0.9rem 2rem; font-size:1.1rem;">
+        <i class="fa-solid fa-rocket"></i> Comenzar ahora
+      </a>
+    </section>
+
+    <!-- Features -->
+    <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem; margin-bottom:4rem;">
+      <div class="card" style="padding:1.5rem;">
+        <div style="color:var(--primary); font-size:2rem; margin-bottom:0.8rem;"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3 style="margin-bottom:0.5rem;">Verificado y seguro</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">
+          Solo estudiantes con correo institucional pueden acceder a la plataforma.
+        </p>
+      </div>
+      <div class="card" style="padding:1.5rem;">
+        <div style="color:var(--accent); font-size:2rem; margin-bottom:0.8rem;"><i class="fa-solid fa-leaf"></i></div>
+        <h3 style="margin-bottom:0.5rem;">Economía circular</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">
+          Reutiliza materiales en buen estado y reduce el desperdicio en tu campus.
+        </p>
+      </div>
+      <div class="card" style="padding:1.5rem;">
+        <div style="color:#f59e0b; font-size:2rem; margin-bottom:0.8rem;"><i class="fa-solid fa-comments"></i></div>
+        <h3 style="margin-bottom:0.5rem;">Contacto directo</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">
+          Chatea con el vendedor, coordina entregas seguras dentro del campus.
+        </p>
+      </div>
+      <div class="card" style="padding:1.5rem;">
+        <div style="color:#ef4444; font-size:2rem; margin-bottom:0.8rem;"><i class="fa-solid fa-wallet"></i></div>
+        <h3 style="margin-bottom:0.5rem;">Ahorro real</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">
+          Hasta un 80% de ahorro promedio en útiles y libros por estudiante.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA final -->
+    <section style="text-align:center; padding: 3rem 1rem; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+      <h2 style="margin-bottom: 1rem;">¿Listo para empezar?</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Únete a la comunidad Pásalo y recupera la inversión de tus materiales.</p>
+      <a href="registro.html" class="btn-primary" style="padding: 0.9rem 2rem;">
+        <i class="fa-solid fa-user-plus"></i> Crear cuenta gratis
+      </a>
+    </section>
+  </main>
+
+  <script src="pasalo.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>

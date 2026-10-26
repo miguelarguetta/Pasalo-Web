@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Detalle de Publicación</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .star-rating { display: flex; gap: 5px; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+    .star-rating i:hover, .star-rating i.active { color: #f59e0b; }
+    .resena-card { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.8rem; border-left: 3px solid #f59e0b; }
+    .link-vendedor { color: var(--primary); font-weight: bold; text-decoration: underline; cursor: pointer; }
+    .qa-card { background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid var(--primary); }
+    .qa-respuesta { background: rgba(16, 185, 129, 0.1); padding: 0.8rem; border-radius: 8px; margin-top: 0.8rem; border-left: 3px solid var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('active')"><i class="fa-solid fa-bars"></i></button>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i><span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleMenuUsuario()"><i class="fa-solid fa-user-circle" style="font-size: 1.4rem;"></i></button>
+        <div class="user-dropdown" id="dropdownUsuario">
+          <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+          <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+          <a href="admin.html" id="btnAdminNav" style="display:none; color: var(--danger); font-weight: bold;"><i class="fa-solid fa-shield-halved"></i> Panel Admin</a>
+          <hr style="border-color: var(--border); margin: 0.5rem 0;">
+          <button onclick="toggleTema()"><i id="iconoTema" class="fa-solid fa-sun"></i> Cambiar Tema</button>
+          <button onclick="cerrarSesion()" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div id="detalleContainer" class="card" style="padding: 2rem; max-width: 800px; margin: 0 auto 2rem auto;"><p style="color:var(--text-muted);">Cargando...</p></div>
+    <div class="card" style="padding: 2rem; max-width: 800px; margin: 0 auto 2rem auto;">
+      <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-circle-question"></i> Preguntas y Respuestas</h3>
+      <div id="formPreguntaContainer" style="display:none; margin-bottom: 2rem;">
+        <form onsubmit="enviarPregunta(event)" style="display:flex; gap:0.5rem;">
+          <input type="text" id="nuevaPregunta" class="form-control" placeholder="¿Tienes alguna duda sobre este artículo?" required>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Preguntar</button>
+        </form>
+      </div>
+      <div id="listaPreguntas"><p style="color:var(--text-muted); font-size:0.9rem;">Cargando preguntas...</p></div>
+    </div>
+    <div class="card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+      <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> Reseñas del Vendedor</h3>
+      <div id="formResenaContainer" style="display:none; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.5rem;">Deja tu calificación</h4>
+        <div class="star-rating" id="starRating"><i class="fa-regular fa-star" onclick="setRating(1)"></i><i class="fa-regular fa-star" onclick="setRating(2)"></i><i class="fa-regular fa-star" onclick="setRating(3)"></i><i class="fa-regular fa-star" onclick="setRating(4)"></i><i class="fa-regular fa-star" onclick="setRating(5)"></i></div>
+        <textarea id="resenaComentario" class="form-control" rows="2" placeholder="¿Cómo fue tu experiencia?" style="margin-top: 0.5rem;"></textarea>
+        <button class="btn-primary" onclick="enviarResena()" style="margin-top: 0.5rem;">Enviar Reseña</button>
+      </div>
+      <div id="listaResenas"><p style="color:var(--text-muted); font-size:0.9rem;">Cargando reseñas...</p></div>
+    </div>
+  </main>
+
+  <div class="modal" id="modalChat">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header"><h3 id="chatTitle">Mensajes</h3><button onclick="cerrarModal('modalChat')">&times;</button></div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="listaConversaciones"></div>
+        <div style="display:flex; flex-direction:column;">
+          <div class="chat-box" id="chatMessages"></div>
+          <form onsubmit="enviarMensaje(event)" style="display:flex; gap:0.5rem;">
+            <input type="text" id="mensajeTexto" class="form-control" placeholder="Escribe un mensaje..." required>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasalo.js"></script>
+  <script>
+    let vendedorIdActual = null;
+    let publicacionIdActual = null;
+    let calificacionSeleccionada = 0;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) return (window.location.href = 'explorar.html');
+      publicacionIdActual = id;
+      const user = await getUsuarioActual();
+      const container = document.getElementById('detalleContainer');
+      try {
+        const res = await fetch(`${API_URL}/publicaciones/${id}`);
+        if (!res.ok) throw new Error();
+        const pub = await res.json();
+        vendedorIdActual = pub.usuario_id;
+        const esPropio = user && user.id === pub.usuario_id;
+        const puedeInteractuar = user && !esPropio;
+        const imgHTML = pub.imagen ? `<img src="${pub.imagen}" style="width:100%; max-height:500px; object-fit:contain; border-radius:8px; margin-bottom:1.5rem;">` : `<div style="width:100%; height:300px; background:#334155; display:flex; align-items:center; justify-content:center; border-radius:8px; margin-bottom:1.5rem;"><i class="fa-solid fa-image" style="font-size:4rem; color:#64748b;"></i></div>`;
+        
+        container.innerHTML = `
+          ${imgHTML}
+          <span class="badge badge-${escapeHtml(pub.tipo)}">${escapeHtml(pub.tipo)}</span>
+          <h1 style="margin: 1rem 0;">${escapeHtml(pub.titulo)}</h1>
+          <h2 style="color: var(--accent); margin-bottom: 1rem;">$${Number(pub.precio).toFixed(2)}</h2>
+          <p style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; color:#cbd5e1;">${escapeHtml(pub.descripcion || 'Sin descripción')}</p>
+          <hr style="border-color: var(--border); margin-bottom: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <div><strong>Categoría:</strong> ${escapeHtml(pub.categoria_nombre)}</div>
+            <div><strong>Materia:</strong> ${escapeHtml(pub.materia || 'General')}</div>
+            <div><strong>Carrera:</strong> ${escapeHtml(pub.carrera || 'General')}</div>
+            <div><strong>Estado:</strong> ${escapeHtml(pub.estado)}</div>
+            <div><strong>Vendedor:</strong> <a href="perfil.html?id=${pub.usuario_id}" class="link-vendedor">${escapeHtml(pub.vendedor_nombre)}</a></div>
+            <div><strong>Reputación:</strong> ⭐ ${Number(pub.reputacion).toFixed(1)}</div>
+          </div>
+          <div style="display:flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+            
+            <!-- BOTÓN DEL PERFIL DEL VENDEDOR (Actualizado) -->
+            <a href="perfil.html?id=${pub.usuario_id}" class="btn-primary" style="background:#475569;">
+              <i class="fa-solid fa-user"></i> Ver Perfil del Vendedor
+            </a>
+
+            ${esPropio 
+              ? `<p style="color: var(--text-muted); width:100%;"><i class="fa-solid fa-info-circle"></i> Este es tu propio artículo.</p><a href="mis_publicaciones.html" class="btn-primary"><i class="fa-solid fa-pen"></i> Editar publicación</a>` 
+              : puedeInteractuar 
+                ? `<button class="btn-primary" onclick="iniciarChatDirecto(${pub.usuario_id}, ${pub.id}, '${escapeHtml(pub.vendedor_nombre).replace(/'/g, "\\'")}')"><i class="fa-solid fa-comments"></i> Iniciar Chat</button><button class="btn-primary" style="background:#25D366;" onclick="compartirWhatsApp('${escapeHtml(pub.titulo).replace(/'/g, "\\'")}', ${pub.precio})"><i class="fa-brands fa-whatsapp"></i> Compartir</button>` 
+                : `<a href="login.html" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Inicia sesión</a>`}
+          </div>`;
+        if (puedeInteractuar) { document.getElementById('formResenaContainer').style.display = 'block'; document.getElementById('formPreguntaContainer').style.display = 'block'; }
+        cargarResenas(pub.usuario_id); cargarPreguntas(pub.id);
+      } catch (err) { container.innerHTML = '<p style="color:#f87171;">No se pudo cargar.</p>'; }
+    });
+
+    async function cargarPreguntas(pubId) {
+      const contenedor = document.getElementById('listaPreguntas');
+      try {
+        const res = await fetch(`${API_URL}/preguntas/${pubId}`);
+        const preguntas = await res.json();
+        const user = await getUsuarioActual();
+        const resPub = await fetch(`${API_URL}/publicaciones/${pubId}`);
+        const pubData = await resPub.json();
+        const esVendedor = user && Number(pubData.usuario_id) === Number(user.id);
+        if (preguntas.length === 0) { contenedor.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No hay preguntas aún.</p>'; return; }
+        contenedor.innerHTML = '';
+        preguntas.forEach(p => {
+          let respuestaHTML = '';
+          if (p.respuesta) { respuestaHTML = `<div class="qa-respuesta"><p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin-bottom:0.2rem;"><i class="fa-solid fa-reply"></i> Respuesta:</p><p style="font-size:0.9rem; color:#cbd5e1;">${escapeHtml(p.respuesta)}</p></div>`; }
+          else if (esVendedor) { respuestaHTML = `<div style="margin-top:0.8rem;"><button class="btn-primary" style="font-size:0.8rem; padding:0.4rem 0.8rem;" onclick="mostrarInputRespuesta(${p.id})">Responder</button><div id="inputRespuesta-${p.id}" style="display:none; margin-top:0.5rem; display:flex; gap:0.5rem;"><input type="text" id="textoRespuesta-${p.id}" class="form-control" placeholder="Escribe tu respuesta..."><button class="btn-primary" onclick="enviarRespuesta(${p.id})"><i class="fa-solid fa-check"></i></button></div></div>`; }
+          contenedor.innerHTML += `<div class="qa-card"><p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.3rem;"><strong>${escapeHtml(p.comprador_nombre)}</strong> preguntó:</p><p style="font-size:1rem;">${escapeHtml(p.pregunta)}</p>${respuestaHTML}</div>`;
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    async function enviarPregunta(e) {
+      e.preventDefault();
+      const input = document.getElementById('nuevaPregunta');
+      const pregunta = input.value.trim();
+      if (!pregunta) return;
+      const res = await fetchAuth(`${API_URL}/preguntas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicacion_id: publicacionIdActual, pregunta }) });
+      if (res.ok) { input.value = ''; cargarPreguntas(publicacionIdActual); }
+    }
+
+    function mostrarInputRespuesta(id) { const div = document.getElementById(`inputRespuesta-${id}`); div.style.display = div.style.display === 'none' ? 'flex' : 'none'; }
+
+    async function enviarRespuesta(preguntaId) {
+      const input = document.getElementById(`textoRespuesta-${preguntaId}`);
+      const respuesta = input.value.trim();
+      if (!respuesta) return;
+      const res = await fetchAuth(`${API_URL}/preguntas/${preguntaId}/responder`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ respuesta, publicacion_id: publicacionIdActual }) });
+      if (res.ok) cargarPreguntas(publicacionIdActual);
+    }
+
+    function setRating(valor) {
+      calificacionSeleccionada = valor;
+      document.querySelectorAll('#starRating i').forEach((estrella, index) => { if (index < valor) { estrella.classList.remove('fa-regular'); estrella.classList.add('fa-solid', 'active'); } else { estrella.classList.remove('fa-solid', 'active'); estrella.classList.add('fa-regular'); } });
+    }
+
+    async function enviarResena() {
+      if (calificacionSeleccionada === 0) return alert('Selecciona al menos 1 estrella.');
+      const comentario = document.getElementById('resenaComentario').value.trim();
+      const res = await fetchAuth(`${API_URL}/resenas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vendedor_id: vendedorIdActual, publicacion_id: publicacionIdActual, calificacion: calificacionSeleccionada, comentario }) });
+      if (res.ok) { alert('¡Gracias!'); document.getElementById('resenaComentario').value = ''; setRating(0); calificacionSeleccionada = 0; cargarResenas(vendedorIdActual); }
+    }
+
+    async function cargarResenas(vendedorId) {
+      const contenedor = document.getElementById('listaResenas');
+      try {
+        const res = await fetch(`${API_URL}/resenas/${vendedorId}`);
+        const resenas = await res.json();
+        if (resenas.length === 0) { contenedor.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Aún no hay reseñas.</p>'; return; }
+        contenedor.innerHTML = '';
+        resenas.forEach(r => {
+          let estrellasHTML = '';
+          for (let i = 1; i <= 5; i++) { estrellasHTML += i <= r.calificacion ? '<i class="fa-solid fa-star" style="color:#f59e0b;"></i>' : '<i class="fa-regular fa-star" style="color:#64748b;"></i>'; }
+          contenedor.innerHTML += `<div class="resena-card"><div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><strong>${escapeHtml(r.comprador_nombre)}</strong><span>${estrellasHTML}</span></div><p style="font-size:0.9rem; color:#cbd5e1;">${escapeHtml(r.comentario || 'Sin comentario.')}</p></div>`;
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    function compartirWhatsApp(titulo, precio) {
+      const url = window.location.href;
+      const mensaje = `¡Mira este artículo en Pásalo! 📚\n\n*${titulo}*\nPrecio: $${precio}\n\nMíralo aquí: ${url}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+  </script>
+</body>
+</html>

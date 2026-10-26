@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Mi Impacto</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+    <nav>
+      <a href="explorar.html"><i class="fa-solid fa-compass"></i> Explorar</a>
+      <a href="mis_publicaciones.html"><i class="fa-solid fa-box"></i> Mis publicaciones</a>
+      <a href="favoritos.html"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Favoritos</a>
+      <a href="perfil.html"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+      <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Mi Impacto</a>
+      <button onclick="abrirModalBandejaMensajes()"><i class="fa-solid fa-comments"></i> Mensajes</button>
+      <a href="publicar.html" class="btn-primary"><i class="fa-solid fa-plus"></i> Publicar</a>
+      
+      <button onclick="abrirNotificaciones()" style="position: relative; display: flex; align-items: center;" id="campanaNotificaciones">
+        <i class="fa-solid fa-bell"></i>
+        <span id="badgeNotificaciones" style="display: none; position: absolute; top: -5px; right: -8px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+      </button>
+      <button onclick="toggleTema()" id="btnTema" title="Cambiar Tema" style="border: none; background: transparent; font-size: 1.2rem; cursor: pointer; padding: 0.5rem;">
+  <i id="iconoTema" class="fa-solid fa-sun"></i>
+</button>
+      <button onclick="cerrarSesion()"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="margin-bottom: 2rem;"><i class="fa-solid fa-chart-line"></i> Mi Impacto en Pásalo</h2>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom: 3rem;">
+      <div class="card" style="padding: 1.5rem; text-align: center;">
+        <i class="fa-solid fa-hand-holding-dollar" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Dinero Ganado</h3>
+        <p style="font-size: 2rem; font-weight: bold;" id="statGanado">$0.00</p>
+      </div>
+      <div class="card" style="padding: 1.5rem; text-align: center;">
+        <i class="fa-solid fa-box-open" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Artículos Vendidos</h3>
+        <p style="font-size: 2rem; font-weight: bold;" id="statVentas">0</p>
+      </div>
+      <div class="card" style="padding: 1.5rem; text-align: center;">
+        <i class="fa-solid fa-store" style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">En Venta Ahora</h3>
+        <p style="font-size: 2rem; font-weight: bold;" id="statActivas">0</p>
+      </div>
+      <div class="card" style="padding: 1.5rem; text-align: center;">
+        <i class="fa-solid fa-envelope" style="font-size: 2.5rem; color: #3b82f6; margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Mensajes Recibidos</h3>
+        <p style="font-size: 2rem; font-weight: bold;" id="statMensajes">0</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 2rem; max-width: 600px; margin: 0 auto;">
+      <h3 style="margin-bottom: 1.5rem; text-align: center;">Ventas por Categoría</h3>
+      <canvas id="graficoVentas"></canvas>
+      <p id="noData" style="display:none; text-align:center; color:var(--text-muted); margin-top:1rem;">Aún no has vendido artículos para mostrar el gráfico.</p>
+    </div>
+  </main>
+
+  <div class="modal" id="modalChat">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header">
+        <h3 id="chatTitle">Mensajes</h3>
+        <button onclick="cerrarModal('modalChat')">&times;</button>
+      </div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="listaConversaciones"></div>
+        <div style="display:flex; flex-direction:column;">
+          <div class="chat-box" id="chatMessages"></div>
+          <form onsubmit="enviarMensaje(event)" style="display:flex; gap:0.5rem;">
+            <input type="text" id="mensajeTexto" class="form-control" placeholder="Escribe un mensaje..." required>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="pasalo.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await requireAuth();
+      if (!user) return;
+
+      try {
+        const res = await fetchAuth(`${API_URL}/dashboard`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        document.getElementById('statGanado').textContent = `$${Number(data.ganado).toFixed(2)}`;
+        document.getElementById('statVentas').textContent = data.ventas;
+        document.getElementById('statActivas').textContent = data.activas;
+        document.getElementById('statMensajes').textContent = data.mensajes;
+
+        if (data.categorias.length === 0) {
+          document.getElementById('noData').style.display = 'block';
+          document.getElementById('graficoVentas').style.display = 'none';
+        } else {
+          const ctx = document.getElementById('graficoVentas').getContext('2d');
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: data.categorias.map(c => c.nombre),
+              datasets: [{
+                data: data.categorias.map(c => c.cantidad),
+                backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#3b82f6'],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: 'bottom', labels: { color: '#cbd5e1' } }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    function cerrarSesion() {
+      localStorage.removeItem('token_pasalo');
+      localStorage.removeItem('es_admin');
+      window.location.href = 'login.html';
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pásalo | Iniciar Sesión</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><i class="fa-solid fa-graduation-cap"></i> Pásalo<span>.</span></a>
+  </header>
+
+  <main style="max-width: 420px; display:flex; align-items:center;">
+    <div class="card" style="padding: 2rem; width: 100%;">
+      <h2 style="margin-bottom: 0.5rem; text-align: center;">Iniciar Sesión</h2>
+      <p style="text-align:center; color: var(--text-muted); font-size:0.9rem; margin-bottom: 1.5rem;">Accede con tu cuenta estudiantil</p>
+
+      <div id="loginError" style="display:none; background: rgba(239,68,68,0.15); color:#f87171; font-size:0.9rem; padding:0.7rem; border-radius:8px; margin-bottom:1rem; text-align:center;"></div>
+
+      <form onsubmit="hacerLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;" novalidate>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Correo institucional</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="ej. juan@universidad.edu" required>
+        </div>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Contraseña</label>
+          <input type="password" id="loginPass" class="form-control" placeholder="••••••••" required minlength="8">
+        </div>
+        
+        <div style="text-align: right; margin-bottom: 0.5rem;">
+          <a href="#" onclick="recuperarPassword(event)" style="font-size: 0.85rem; color: var(--primary);">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn-primary" style="justify-content: center;" id="btnLogin">
+          Continuar
+        </button>
+      </form>
+      <p style="text-align:center; margin-top:1rem; color:var(--text-muted); font-size:0.9rem;">
+        ¿No tienes cuenta? <a href="registro.html" style="color:var(--primary); font-weight:600;">Regístrate</a>
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const API_URL_LOGIN = '/api';
+
+    async function hacerLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPass').value;
+      const errorBox = document.getElementById('loginError');
+      const btn = document.getElementById('btnLogin');
+      
+      errorBox.style.display = 'none';
+      btn.textContent = 'Ingresando...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL_LOGIN}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('token_pasalo', data.token);
+          if (data.usuario && data.usuario.rol === 'Admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'explorar.html';
+          }
+        } else {
+          errorBox.textContent = data.error || 'Credenciales incorrectas';
+          errorBox.style.display = 'block';
+        }
+      } catch (err) {
+        errorBox.textContent = 'Error de conexión con el servidor.';
+        errorBox.style.display = 'block';
+      } finally {
+        btn.textContent = 'Continuar';
+        btn.disabled = false;
+      }
+    }
+
+    function recuperarPassword(e) {
+      e.preventDefault();
+      alert('La recuperación automática todavía no está disponible. Contacta al administrador del sitio para recuperar tu cuenta.');
+    }
+
+  </script>
+  
+</body>
+</html>
